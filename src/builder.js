@@ -30,9 +30,10 @@ class TreeBuilder {
     let zoom = d3.zoom()
       .scaleExtent([0.1, 10])
       .on('zoom', _.bind(function() {
-        svg.attr('transform', 'translate(' + d3.event.translate + ')' +
-          ' scale(' + d3.event.scale + ')');
+        console.log(d3.event);
+        svg.attr('transform', d3.event.transform);
       }, this));
+    let transform = d3.zoomIdentity.translate(width / 2, opts.margin.top);
 
     //make an SVG
     let svg = this.svg = d3.select(opts.target)
@@ -40,10 +41,15 @@ class TreeBuilder {
       .attr('width', width)
       .attr('height', height)
       .call(zoom)
-      .append('g')
-      .attr('transform', 'translate(' + width / 2 + ',' + opts.margin.top + ')');
+      // .call(zoom.transform,transform)
+      .append('g');
+    // .attr('transform', 'translate(' + width / 2 + ',' + opts.margin.top + ')');
 
+    svg.call(zoom.transform,transform);
+    // zoom.translateBy(svg,width / 2, opts.margin.top);
+    // let transform = d3.zoomTransform(svg.node()).translate(width / 2, opts.margin.top);
     // zoom.translate([width / 2, opts.margin.top]);
+    // zoom.transform(svg, transform);
 
     // Compute the layout.
     this.tree = d3.tree()
@@ -67,20 +73,23 @@ class TreeBuilder {
     let allNodes = this.allNodes;
     let nodeSize = this.nodeSize;
 
-    var nodes = d3.hierarchy(source);
-
-    let links = nodes.links();
+    let treenodes = this.tree(source);
+    let links = treenodes.links();
 
     // Create the link lines.
     this.svg.selectAll('.link')
       .data(links)
       .enter()
+      // filter links with no parents to prevent empty nodes
+      .filter(function(l) {
+        return !l.target.data.noParent;
+      })
       .append('path')
       .attr('class', opts.styles.linage)
       .attr('d', this._elbow);
 
     var nodes = this.svg.selectAll('.node')
-      .data(nodes)
+      .data(treenodes.descendants())
       .enter();
 
     this._linkSiblings();
@@ -96,7 +105,7 @@ class TreeBuilder {
     // Create the node rectangles.
     nodes.append('foreignObject')
       .filter(function(d) {
-        return d.hidden ? false : true;
+        return d.data.hidden ? false : true;
       })
       .attr('x', function(d) {
         return d.x - d.cWidth / 2 + 'px';
@@ -115,15 +124,15 @@ class TreeBuilder {
       })
       .html(function(d) {
         return opts.callbacks.nodeRenderer(
-          d.name,
+          d.data.name,
           d.x,
           d.y,
           nodeSize[0],
           nodeSize[1],
-          d.extra,
-          d.id,
-          d.class,
-          d.textClass,
+          d.data.extra,
+          d.data.id,
+          d.data.class,
+          d.data.textClass,
           opts.callbacks.textRenderer);
       })
       .on('click', function(d)  {
@@ -175,9 +184,7 @@ class TreeBuilder {
       .y(function(d) {
         return d.y;
       });
-    let tmp = fun(linedata);
-    console.log(tmp)
-    return tmp;
+    return fun(linedata);
   }
 
   _linkSiblings() {
@@ -186,10 +193,10 @@ class TreeBuilder {
 
     _.forEach(this.siblings, function(d) {
       let start = allNodes.filter(function(v) {
-        return d.source.id == v.id;
+        return d.source.id == v.data.id;
       });
       let end = allNodes.filter(function(v) {
-        return d.target.id == v.id;
+        return d.target.id == v.data.id;
       });
       d.source.x = start[0].x;
       d.source.y = start[0].y;
@@ -248,11 +255,11 @@ class TreeBuilder {
 
     _.map(nodes, function(n) {
       let container = document.createElement('div');
-      container.setAttribute('class', n.class);
+      container.setAttribute('class', n.data.class);
       container.style.visibility = 'hidden';
       container.style.maxWidth = width + 'px';
 
-      let text = textRenderer(n.name, n.extra, n.textClass);
+      let text = textRenderer(n.data.name, n.data.extra, n.data.textClass);
       container.innerHTML = text;
 
       tmpSvg.appendChild(container);

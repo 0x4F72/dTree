@@ -47,7 +47,7 @@ class TreeBuilder {
       .nodeSize([nodeSize[0] * 2, nodeSize[1] * 2.5]);
 
     this.tree.separation(function separation(a, b) {
-      if (a.hidden || b.hidden) {
+      if (a.data.hidden || b.data.hidden) {
         return 0.3;
       } else {
         return 0.6;
@@ -127,7 +127,7 @@ class TreeBuilder {
           opts.callbacks.textRenderer);
       })
       .on('click', function(d)  {
-        if (d.hidden) {
+        if (d.data.hidden) {
           return;
         }
         opts.callbacks.nodeClick(d.name, d.extra, d.id);

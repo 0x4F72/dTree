@@ -1,5 +1,5 @@
 <a name="1.3.3"></a>
-## [1.3.3](https://github.com/ErikGartner/dtree/compare/1.3.2...v1.3.3) (2017-02-16)
+## [1.3.3](https://github.com/ErikGartner/dtree/compare/1.3.2...v1.3.3) (2017-03-08)
 
 ### Features
 

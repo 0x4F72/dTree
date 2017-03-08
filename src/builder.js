@@ -79,7 +79,7 @@ class TreeBuilder {
       .attr('class', opts.styles.linage)
       .attr('d', this._elbow);
 
-    var nodes = this.svg.selectAll('.node')
+    let nodes = this.svg.selectAll('.node')
       .data(treenodes.descendants())
       .enter();
 
@@ -168,7 +168,7 @@ class TreeBuilder {
       y: d.source.y
     }];
 
-    var fun = d3.line().curve(d3.curveStepAfter)
+    let fun = d3.line().curve(d3.curveStepAfter)
       .x(function(d) {
         return d.x;
       })
